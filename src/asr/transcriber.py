@@ -1,38 +1,32 @@
 from faster_whisper import WhisperModel
 from pathlib import Path
-
+from src.config.settings import MODEL_SIZE
 
 class WhisperTranscriber:
-    """
-    Simple wrapper around faster-whisper.
-    """
 
-    def __init__(self, model_size="large-v2"):
+    def __init__(self, model_size=MODEL_SIZE):
         self.model = WhisperModel(
             model_size,
             device="cpu",
             compute_type="int8"
         )
 
-    def transcribe(self, audio_path: str) -> str:
-        """
-        Transcribe an audio file and return text.
-        """
+    def transcribe(self, audio_path: str):
 
         audio_path = Path(audio_path)
 
         if not audio_path.exists():
-            raise FileNotFoundError(f"{audio_path} not found")
+            raise FileNotFoundError(audio_path)
 
         segments, info = self.model.transcribe(
             str(audio_path),
-            beam_size=5,
+            beam_size=1,
             vad_filter=True
         )
 
         text = []
 
-        for segment in segments:
-            text.append(segment.text.strip())
+        for seg in segments:
+            text.append(seg.text.strip())
 
         return " ".join(text)
