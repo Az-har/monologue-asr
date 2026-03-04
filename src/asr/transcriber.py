@@ -1,17 +1,18 @@
 from faster_whisper import WhisperModel
 from pathlib import Path
-from src.config.settings import MODEL_SIZE
+
 
 class WhisperTranscriber:
 
-    def __init__(self, model_size=MODEL_SIZE):
+    def __init__(self, model_size="tiny"):
+
         self.model = WhisperModel(
             model_size,
             device="cpu",
             compute_type="int8"
         )
 
-    def transcribe(self, audio_path: str):
+    def transcribe(self, audio_path):
 
         audio_path = Path(audio_path)
 
@@ -19,14 +20,40 @@ class WhisperTranscriber:
             raise FileNotFoundError(audio_path)
 
         segments, info = self.model.transcribe(
+
             str(audio_path),
-            beam_size=1,
-            vad_filter=True
+
+            task="translate",        # always output English
+            beam_size=3,
+            vad_filter=True,
+
+            condition_on_previous_text=False,
+            temperature=0.0
         )
 
-        text = []
+        print("Detected language:", info.language)
+
+        paragraphs = []
+        buffer = ""
+
+        prev_end = 0
 
         for seg in segments:
-            text.append(seg.text.strip())
 
-        return " ".join(text)
+            gap = seg.start - prev_end
+
+            # If long pause → new paragraph
+            if gap > 1.5 and buffer:
+                paragraphs.append(buffer.strip())
+                buffer = ""
+
+            timestamp = f"[{int(seg.start//60):02d}:{int(seg.start%60):02d}]"
+
+            buffer += f"{timestamp} {seg.text.strip()} "
+
+            prev_end = seg.end
+
+        if buffer:
+            paragraphs.append(buffer.strip())
+
+        return "\n\n".join(paragraphs)
