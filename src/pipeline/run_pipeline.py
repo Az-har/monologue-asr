@@ -4,7 +4,7 @@ from src.preprocess.audio_cleaner import AudioCleaner
 from src.asr.transcriber import WhisperTranscriber
 from src.utils.writer import save_transcript
 from src.utils.logger import setup_logger
-
+from src.utils.text_cleaner import clean_transcript
 from src.config.settings import INPUT_DIR, PROCESSED_DIR, OUTPUT_DIR
 
 
@@ -38,6 +38,9 @@ def run_pipeline():
             logger.info(f"Converted to WAV: {wav_file}")
 
             text = transcriber.transcribe(wav_file)
+
+            # clean transcript
+            text = clean_transcript(text)
 
             save_transcript(text, output_file)
 
