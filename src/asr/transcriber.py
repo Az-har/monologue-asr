@@ -1,13 +1,13 @@
 from faster_whisper import WhisperModel
 from pathlib import Path
-
+from src.config.settings import MODEL_SIZE
 
 class WhisperTranscriber:
 
-    def __init__(self, model_size="tiny"):
+    def __init__(self):
 
         self.model = WhisperModel(
-            model_size,
+            MODEL_SIZE,
             device="cpu",
             compute_type="int8"
         )
