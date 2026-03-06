@@ -1,9 +1,10 @@
 from pathlib import Path
+from tqdm import tqdm
 
 from src.preprocess.audio_cleaner import AudioCleaner
 from src.asr.transcriber import WhisperTranscriber
 from src.utils.writer import save_transcript
-from tqdm import tqdm
+
 
 INPUT_DIR = Path("data/input")
 PROCESSED_DIR = Path("data/processed")
@@ -23,27 +24,27 @@ def run_pipeline():
 
     for audio_file in tqdm(files, desc="Processing audio"):
 
-    output_file = OUTPUT_DIR / (audio_file.stem + ".txt")
+        output_file = OUTPUT_DIR / (audio_file.stem + ".txt")
 
-    # Skip already processed files
-    if output_file.exists():
-        print("Skipping (already processed):", audio_file.name)
-        continue
+        # Skip already processed files
+        if output_file.exists():
+            print("Skipping (already processed):", audio_file.name)
+            continue
 
-    print("\nProcessing:", audio_file.name)
+        print("\nProcessing:", audio_file.name)
 
-    # Step 1: Convert audio
-    wav_file = cleaner.convert_to_wav(audio_file)
+        # Convert audio
+        wav_file = cleaner.convert_to_wav(audio_file)
 
-    print("Converted to:", wav_file.name)
+        print("Converted to:", wav_file.name)
 
-    # Step 2: Transcribe
-    text = transcriber.transcribe(wav_file)
+        # Transcribe
+        text = transcriber.transcribe(wav_file)
 
-    # Step 3: Save transcript
-    save_transcript(text, output_file)
+        # Save transcript
+        save_transcript(text, output_file)
 
-    print("Transcript saved:", output_file)
+        print("Transcript saved:", output_file)
 
 
 if __name__ == "__main__":
